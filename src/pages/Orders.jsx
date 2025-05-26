@@ -4,7 +4,7 @@ import Title from "../components/Title";
 import ReviewModal from "../components/ReviewModal";
 
 const Orders = () => {
-  const { orders } = useContext(OrderContext); // Use orders from context
+  const { orders } = useContext(OrderContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 

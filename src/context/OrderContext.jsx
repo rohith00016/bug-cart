@@ -6,7 +6,7 @@ export const OrderContext = createContext();
 
 const OrderContextProvider = (props) => {
   const [orders, setOrders] = useState([]);
-  const apiBaseUrl = "http://localhost:8000/api"; 
+  const apiBaseUrl = "http://localhost:8000/api";
 
   // Fetch user orders
   const fetchUserOrders = async () => {
@@ -26,9 +26,9 @@ const OrderContextProvider = (props) => {
   // Place a new order
   const placeOrder = async (shippingAddress, cartItems, resetCart) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${apiBaseUrl}/orders`,
+        `${apiBaseUrl}/order`,
         { shippingAddress },
         {
           headers: {
