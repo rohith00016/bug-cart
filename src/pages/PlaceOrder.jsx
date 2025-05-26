@@ -1,22 +1,18 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import { OrderContext } from "../context/OrderContext";
 import SuccessModal from "../components/SuccessModal";
+import axios from "axios";
 
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
   const [showModal, setShowModal] = useState(false);
   const { navigate, cartItems, resetContextData } = useContext(ShopContext);
   const { placeOrder } = useContext(OrderContext);
-
-  // State for shipping address
   const [shippingAddress, setShippingAddress] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
     address: "",
     city: "",
     state: "",
@@ -24,6 +20,41 @@ const PlaceOrder = () => {
     country: "",
     mobile: "",
   });
+  const [error, setError] = useState("");
+
+  // Fetch user’s shipping address
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token =
+          sessionStorage.getItem("token") || localStorage.getItem("token");
+        if (!token) {
+          setError("Please log in to place an order.");
+          return;
+        }
+        const response = await axios.get(
+          "http://localhost:8000/api/auth/user",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const { shippingAddress, mobile } = response.data.userDetail;
+        if (shippingAddress) {
+          setShippingAddress({
+            address: shippingAddress.address || "",
+            city: shippingAddress.city || "",
+            state: shippingAddress.state || "",
+            postalCode: shippingAddress.zip || "",
+            country: shippingAddress.country || "",
+            mobile: mobile || "",
+          });
+        }
+      } catch (err) {
+        setError("Failed to fetch user data");
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -33,11 +64,9 @@ const PlaceOrder = () => {
   const handlePlaceOrder = async () => {
     // Validate shipping address
     if (
-      !shippingAddress.firstName ||
-      !shippingAddress.lastName ||
-      !shippingAddress.email ||
       !shippingAddress.address ||
       !shippingAddress.city ||
+      !shippingAddress.state ||
       !shippingAddress.postalCode ||
       !shippingAddress.country ||
       !shippingAddress.mobile
@@ -47,16 +76,7 @@ const PlaceOrder = () => {
     }
 
     try {
-      await placeOrder(
-        {
-          address: `${shippingAddress.address}, ${shippingAddress.firstName} ${shippingAddress.lastName}, ${shippingAddress.mobile}`,
-          city: shippingAddress.city,
-          postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country,
-        },
-        cartItems,
-        resetContextData
-      );
+      await placeOrder(shippingAddress, cartItems, resetContextData);
       setShowModal(true);
     } catch (error) {
       // Error is handled in OrderContext via toast
@@ -76,32 +96,7 @@ const PlaceOrder = () => {
           <div className="my-3 text-xl sm:text-2xl">
             <Title text1={"DELIVERY"} text2={"INFORMATION"} />
           </div>
-          <div className="flex gap-3">
-            <input
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-              type="text"
-              name="firstName"
-              placeholder="First Name"
-              value={shippingAddress.firstName}
-              onChange={handleInputChange}
-            />
-            <input
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-              type="text"
-              name="lastName"
-              placeholder="Last Name"
-              value={shippingAddress.lastName}
-              onChange={handleInputChange}
-            />
-          </div>
-          <input
-            className="w-full px-4 py-2 border border-gray-300 rounded"
-            type="email"
-            name="email"
-            placeholder="Email Address"
-            value={shippingAddress.email}
-            onChange={handleInputChange}
-          />
+          {error && <p className="text-red-500">{error}</p>}
           <input
             className="w-full px-4 py-2 border border-gray-300 rounded"
             type="text"
