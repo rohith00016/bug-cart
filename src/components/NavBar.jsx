@@ -2,30 +2,30 @@ import { useContext, useState } from "react";
 import { assets } from "../assets/assets";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
+import { CartContext } from "../context/CartContext";
 import { WishlistContext } from "../context/WishlistContext";
 import { HiOutlineHeart } from "react-icons/hi";
 
 const NavBar = () => {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
-  const { setShowSearch, getCartCount, setCartItems, resetContextData } =
-    useContext(ShopContext);
-
-  const { wishlistItems, setWishlistItems } = useContext(WishlistContext);
+  const { setShowSearch, resetContextData } = useContext(ShopContext);
+  const { getCartCount } = useContext(CartContext);
+  const { wishlistItems, setWishlistItems, resetWishlist } = useContext(WishlistContext);
 
   const isLoggedIn =
     !!sessionStorage.getItem("token") || !!localStorage.getItem("token");
 
-  const getWishlistCount = () => Object.keys(wishlistItems).length;
+  const getWishlistCount = () => Object.keys(wishlistItems || {}).length;
 
   const handleLogout = () => {
+    console.log("Logging out, resetting wishlist...");
     resetContextData();
     sessionStorage.removeItem("token");
     localStorage.removeItem("token");
-    setCartItems({});
     setWishlistItems({});
-    localStorage.removeItem("cartItems");
     localStorage.removeItem("wishlistItems");
+    resetWishlist();
     navigate("/login");
   };
 

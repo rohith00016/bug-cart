@@ -23,7 +23,7 @@ const Collection = () => {
         ? "highToLow"
         : "",
     category: category.join(","),
-    type: subCategory.join(","),
+    subCategory: subCategory.join(","),
   });
 
   // Fetch products when filters, sort, or page change

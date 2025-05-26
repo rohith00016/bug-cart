@@ -1,15 +1,17 @@
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ShopContext } from "../context/ShopContext";
+import { CartContext } from "../context/CartContext";
 import { ProductContext } from "../context/ProductContext";
+import { ReviewContext } from "../context/ReviewContext";
 import { assets } from "../assets/assets";
 import RelatedProducts from "../components/RelatedProducts";
 import { toast } from "react-toastify";
 
 const Product = () => {
   const { productId } = useParams();
-  const { currency, addToCart, reviews } = useContext(ShopContext);
+  const { currency, addToCart } = useContext(CartContext);
   const { fetchProductById } = useContext(ProductContext);
+  const { reviews } = useContext(ReviewContext);
   const [productData, setProductData] = useState(null);
   const [image, setImage] = useState("");
   const [size, setSize] = useState("");

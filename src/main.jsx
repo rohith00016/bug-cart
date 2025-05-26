@@ -4,18 +4,24 @@ import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import ShopContextProvider from "./context/ShopContext.jsx";
 import ProductContextProvider from "./context/ProductContext.jsx";
+import CartContextProvider from "./context/CartContext.jsx";
 import WishlistContextProvider from "./context/WishlistContext.jsx";
 import OrderContextProvider from "./context/OrderContext.jsx";
+import ReviewContextProvider from "./context/ReviewContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <ProductContextProvider>
       <ShopContextProvider>
-        <WishlistContextProvider>
-          <OrderContextProvider>
-            <App />
-          </OrderContextProvider>
-        </WishlistContextProvider>
+        <CartContextProvider>
+          <WishlistContextProvider>
+            <ReviewContextProvider>
+              <OrderContextProvider>
+                <App />
+              </OrderContextProvider>
+            </ReviewContextProvider>
+          </WishlistContextProvider>
+        </CartContextProvider>
       </ShopContextProvider>
     </ProductContextProvider>
   </BrowserRouter>

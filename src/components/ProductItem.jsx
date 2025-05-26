@@ -7,11 +7,16 @@ const ProductItem = ({ id, image, name, price }) => {
   const { currency, addToWishlist, removeFromWishlist, wishlistItems } =
     useContext(WishlistContext);
 
-  const isInWishlist = wishlistItems?.[id];
+  const isInWishlist = wishlistItems?.[id] || false;
 
   const handleWishlistClick = (e) => {
     e.preventDefault();
-    isInWishlist ? removeFromWishlist(id) : addToWishlist(id);
+    console.log("Wishlist toggle clicked, productId:", id, "isInWishlist:", isInWishlist, "wishlistItems:", wishlistItems);
+    if (isInWishlist) {
+      removeFromWishlist(id);
+    } else {
+      addToWishlist(id);
+    }
   };
 
   return (
@@ -20,24 +25,24 @@ const ProductItem = ({ id, image, name, price }) => {
         <div className="overflow-hidden">
           <img
             className="transition ease-in-out hover:scale-110"
-            src={`http://localhost:8000/images/${image[0]}.png`} // Replace with your image URL image[0]}
-            alt="Product"
+            src={image && image[0] ? `http://localhost:8000/images/${image[0]}.png` : ""}
+            alt={name || "Product"}
           />
         </div>
-        <p className="pt-3 pb-1 text-sm">{name}</p>
+        <p className="pt-3 pb-1 text-sm">{name || "Unknown Product"}</p>
         <p className="text-sm font-medium">
-          {currency}&nbsp;
-          {price.toLocaleString(undefined, {
+          {currency} 
+          {(price || 0).toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}
         </p>
       </Link>
 
-      {/* Wishlist icon */}
       <button
         onClick={handleWishlistClick}
         className="absolute top-2 right-2 text-red-500 hover:scale-110 transition"
+        aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
       >
         {isInWishlist ? <FaHeart size={24} /> : <FaRegHeart size={24} />}
       </button>

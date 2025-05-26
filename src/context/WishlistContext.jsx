@@ -1,79 +1,75 @@
-import { createContext, useState, useContext } from "react";
-import { ShopContext } from "./ShopContext.jsx";
+import { createContext, useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-// Create the WishlistContext
 export const WishlistContext = createContext();
 
-// WishlistContext Provider
 const WishlistContextProvider = ({ children }) => {
-  const [wishlistItems, setWishlistItems] = useState({}); // { productId: true }
-  const [wishlistData, setWishlistData] = useState([]); // Full product details
+  const [wishlistData, setWishlistData] = useState([]);
+  const [wishlistItems, setWishlistItems] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currency, setCurrency] = useState("$"); // Default currency
+  const [isFetched, setIsFetched] = useState(false);
+  const apiBaseUrl = "http://localhost:8000/api";
+  const navigate = useNavigate();
 
-  const shopContext = useContext(ShopContext);
-  if (!shopContext) {
-    throw new Error(
-      "WishlistContextProvider must be used within a ShopContextProvider"
-    );
-  }
-  const { navigate } = shopContext;
-
-  // Abstracted function to get auth token
+  // Get auth token
   const getAuthToken = () => {
-    return localStorage.getItem("token");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    console.log("getAuthToken called, token:", token);
+    return token;
   };
 
   // Fetch wishlist from backend
-  const fetchWishlist = async () => {
+  const getWishlist = useCallback(async () => {
     const token = getAuthToken();
-    if (!token) {
-      setError("Please log in to view your wishlist");
-      toast.error("Please log in to view your wishlist");
-      navigate("/login");
+    if (!token || isFetched) {
+      console.log("Skipping getWishlist, isFetched:", isFetched);
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    console.log("Fetching wishlist...");
     try {
-      const response = await fetch("http://localhost:8000/api/wishlist", {
-        method: "GET",
+      const response = await axios.get(`${apiBaseUrl}/wishlist`, {
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
-
-      if (response.status === 401) {
-        setError("Session expired. Please log in again.");
-        toast.error("Session expired. Please log in again.");
-        localStorage.removeItem("token");
-        navigate("/login");
-        return;
-      }
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch wishlist");
-      }
-
-      setWishlistData(data.items.map((item) => item.productId));
-      const items = data.items.reduce((acc, item) => {
-        acc[item.productId._id] = true;
-        return acc;
-      }, {});
-      setWishlistItems(items);
+      const items = response.data.items || [];
+      console.log("Wishlist fetched, response:", response.data);
+      setWishlistData(items);
+      setWishlistItems(
+        items.reduce((acc, item) => {
+          acc[item.productId._id] = true;
+          return acc;
+        }, {})
+      );
+      setIsFetched(true);
     } catch (err) {
-      setError(err.message || "Failed to fetch wishlist");
-      toast.error(err.message || "Failed to fetch wishlist");
+      const errorMsg = err.response?.data?.error || "Failed to fetch wishlist";
+      setError(errorMsg);
+      toast.error(errorMsg);
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        navigate("/login");
+      }
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
-  };
+  }, [isFetched, navigate]);
 
-  // Add item to wishlist
+  // Fetch wishlist on mount if user is logged in
+  useEffect(() => {
+    if (getAuthToken()) {
+      getWishlist();
+    }
+  }, [getWishlist]);
+
+  // Add to wishlist
   const addToWishlist = async (productId) => {
     const token = getAuthToken();
     if (!token) {
@@ -82,58 +78,43 @@ const WishlistContextProvider = ({ children }) => {
       return;
     }
 
+    setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/wishlist/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ productId }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError("Session expired. Please log in again.");
-          toast.error("Session expired. Please log in again.");
-          localStorage.removeItem("token");
-          navigate("/login");
-          return;
-        }
-        throw new Error(data.message || "Failed to add to wishlist");
-      }
-
-      const productResponse = await fetch(
-        `http://localhost:8000/api/product/${productId}`,
+      console.log("Adding to wishlist, productId:", productId);
+      const response = await axios.post(
+        `${apiBaseUrl}/wishlist/add`,
+        { productId },
         {
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      const productData = await productResponse.json();
-      if (!productResponse.ok) {
-        if (productResponse.status === 401) {
-          setError("Session expired. Please log in again.");
-          toast.error("Session expired. Please log in again.");
-          localStorage.removeItem("token");
-          navigate("/login");
-          return;
-        }
-        throw new Error(productData.message || "Failed to fetch product");
-      }
-
-      setWishlistItems((prev) => ({ ...prev, [productId]: true }));
-      setWishlistData((prev) => [...prev, productData]);
-      toast.success("Product added to wishlist");
+      console.log("Add to wishlist response:", response.data);
+      const items = response.data.items || [];
+      setWishlistData(items);
+      setWishlistItems(
+        items.reduce((acc, item) => {
+          acc[item.productId._id] = true;
+          return acc;
+        }, {})
+      );
+      toast.success("Item Added To Wishlist");
     } catch (err) {
-      toast.error(err.message || "Failed to add to wishlist");
+      const errorMsg = err.response?.data?.error || "Failed to add to wishlist";
+      console.error("Add to wishlist error:", err.response?.data || err);
+      toast.error(errorMsg);
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        navigate("/login");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Remove item from wishlist
+  // Remove from wishlist
   const removeFromWishlist = async (productId) => {
     const token = getAuthToken();
     if (!token) {
@@ -142,64 +123,63 @@ const WishlistContextProvider = ({ children }) => {
       return;
     }
 
+    setIsLoading(true);
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/wishlist/remove",
+      console.log("Removing from wishlist, productId:", productId);
+      const response = await axios.post(
+        `${apiBaseUrl}/wishlist/remove`,
+        { productId },
         {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ productId }),
         }
       );
-
-      const data = await response.json();
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError("Session expired. Please log in again.");
-          toast.error("Session expired. Please log in again.");
-          localStorage.removeItem("token");
-          navigate("/login");
-          return;
-        }
-        throw new Error(data.message || "Failed to remove from wishlist");
-      }
-
-      setWishlistItems((prev) => {
-        const updated = { ...prev };
-        delete updated[productId];
-        return updated;
-      });
-      setWishlistData((prev) => prev.filter((item) => item._id !== productId));
-      toast.success("Product removed from wishlist");
+      console.log("Remove from wishlist response:", response.data);
+      const items = response.data.items || [];
+      setWishlistData(items);
+      setWishlistItems(
+        items.reduce((acc, item) => {
+          acc[item.productId._id] = true;
+          return acc;
+        }, {})
+      );
+      toast.success("Item Removed From Wishlist");
     } catch (err) {
-      toast.error(err.message || "Failed to remove from wishlist");
+      const errorMsg = err.response?.data?.error || "Failed to remove from wishlist";
+      console.error("Remove from wishlist error:", err.response?.data || err);
+      toast.error(errorMsg);
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        navigate("/login");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const value = {
-    wishlistItems,
-    setWishlistItems,
-    wishlistData,
-    setWishlistData,
-    isLoading,
-    setIsLoading,
-    error,
-    setError,
-    currency,
-    setCurrency,
-    addToWishlist,
-    removeFromWishlist,
-    fetchWishlist,
+  // Reset wishlist (e.g., on logout)
+  const resetWishlist = () => {
+    setWishlistData([]);
+    setWishlistItems({});
+    setIsFetched(false);
   };
 
-  return (
-    <WishlistContext.Provider value={value}>
-      {children}
-    </WishlistContext.Provider>
-  );
+  const value = {
+    wishlistData,
+    wishlistItems,
+    setWishlistItems,
+    isLoading,
+    error,
+    currency: "$",
+    addToWishlist,
+    removeFromWishlist,
+    fetchWishlist: getWishlist,
+    resetWishlist,
+  };
+
+  return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
 };
 
 export default WishlistContextProvider;

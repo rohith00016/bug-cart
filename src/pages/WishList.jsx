@@ -17,7 +17,7 @@ const Wishlist = () => {
 
   useEffect(() => {
     fetchWishlist(); // Fetch wishlist from backend on component mount
-  }, []);
+  }, [fetchWishlist]);
 
   const toggleWishlist = (itemId) => {
     if (wishlistItems[itemId]) {
@@ -35,6 +35,11 @@ const Wishlist = () => {
     return <p className="text-center text-red-500">{error}</p>;
   }
 
+  // Safeguard for undefined wishlistData
+  if (!wishlistData) {
+    return <p className="text-center text-gray-500">Your wishlist is empty.</p>;
+  }
+
   return (
     <div className="border-t pt-14 px-4">
       <div className="mb-6 text-2xl font-semibold">
@@ -46,19 +51,21 @@ const Wishlist = () => {
         <div className="grid gap-6">
           {wishlistData.map((item) => (
             <div
-              key={item._id}
+              key={item.productId._id}
               className="flex items-center gap-4 border-b pb-4"
             >
               <img
                 className="w-24 h-24 object-cover"
-                src={item.image[0]}
-                alt={item.name}
+                src={item.productId.image && item.productId.image[0]}
+                alt={item.productId.name || "Product"}
               />
               <div className="flex-1">
-                <h3 className="font-medium">{item.name}</h3>
+                <h3 className="font-medium">
+                  {item.productId.name || "Unknown Product"}
+                </h3>
                 <p className="text-sm text-gray-500">
                   {currency}&nbsp;
-                  {item.price.toLocaleString(undefined, {
+                  {(item.productId.price || 0).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
@@ -68,7 +75,7 @@ const Wishlist = () => {
                 src={assets.bin_icon}
                 alt="Remove"
                 className="w-5 h-5 cursor-pointer"
-                onClick={() => toggleWishlist(item._id)}
+                onClick={() => toggleWishlist(item.productId._id)}
               />
             </div>
           ))}
