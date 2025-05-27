@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/axiosInstance";
 
 const useAuth = (initialState = "Login") => {
   const [currentState, setCurrentState] = useState(initialState);
@@ -16,8 +16,8 @@ const useAuth = (initialState = "Login") => {
     const url = currentState === "Login" ? "/login" : "/signup";
 
     try {
-      const response = await axios.post(
-        `http://localhost:8000/api/auth${url}`,
+      const response = await axiosInstance.post(
+        `/auth${url}`,
         form
       );
       const data = response.data;

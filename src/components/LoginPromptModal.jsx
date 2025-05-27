@@ -1,4 +1,4 @@
-import React from 'react';
+import {Link} from "react-router-dom"
 
 const LoginPromptModal = ({ onClose, onLogin, onSignup }) => {
   return (
@@ -8,18 +8,18 @@ const LoginPromptModal = ({ onClose, onLogin, onSignup }) => {
         <p className="text-sm text-gray-600 mt-2">Please login or signup to proceed with checkout.</p>
 
         <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
-          <button
-            onClick={onLogin}
+          <Link
+            to="/login"
             className="bg-black text-white px-5 py-2 text-sm rounded hover:bg-gray-800 transition"
           >
             Login
-          </button>
-          <button
-            onClick={onSignup}
+          </Link>
+          <Link
+            to="/signup"
             className="border border-gray-400 text-sm px-5 py-2 rounded hover:bg-slate-100 transition"
           >
             Signup
-          </button>
+          </Link>
         </div>
 
         <button

@@ -1,15 +1,9 @@
-import React from "react";
-import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 const Login = () => {
-  const {
-    currentState,
-    setCurrentState,
-    form,
-    onChange,
-    onSubmitHandler,
-  } = useAuth();
+  const { currentState, setCurrentState, form, onChange, onSubmitHandler } = useContext(AuthContext);
 
   const navigate = useNavigate();
 

@@ -8,6 +8,7 @@ import CartContextProvider from "./context/CartContext.jsx";
 import WishlistContextProvider from "./context/WishlistContext.jsx";
 import OrderContextProvider from "./context/OrderContext.jsx";
 import ReviewContextProvider from "./context/ReviewContext.jsx";
+import {AuthProvider} from "./context/AuthContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -17,7 +18,9 @@ createRoot(document.getElementById("root")).render(
           <WishlistContextProvider>
             <ReviewContextProvider>
               <OrderContextProvider>
-                <App />
+                <AuthProvider>
+                  <App />
+                </AuthProvider>
               </OrderContextProvider>
             </ReviewContextProvider>
           </WishlistContextProvider>

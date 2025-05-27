@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { toast } from "react-toastify";
+import axiosInstance from "../utils/axiosInstance";
 
 const useProduct = () => {
   const fetchProducts = useCallback(async (options = {}) => {
@@ -20,48 +21,28 @@ const useProduct = () => {
         type,
       }).toString();
 
-      const response = await fetch(
-        `http://localhost:8000/api/product?${queryParams}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch products");
-      }
+      const response = await axiosInstance.get(`/product?${queryParams}`);
 
       return {
-        products: data.products,
-        totalPages: data.totalPages,
-        page: data.page,
+        products: response.data.products,
+        totalPages: response.data.totalPages,
+        page: response.data.page,
       };
     } catch (err) {
-      throw new Error(err.message || "Failed to fetch products");
+      throw new Error(
+        err.response?.data?.message || err.message || "Failed to fetch products"
+      );
     }
   }, []);
 
   const fetchProductById = useCallback(async (id) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/product/${id}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch product");
-      }
-
-      return data;
+      const response = await axiosInstance.get(`/product/${id}`);
+      return response.data;
     } catch (err) {
-      toast.error(err.message || "Failed to fetch product");
+      toast.error(
+        err.response?.data?.message || err.message || "Failed to fetch product"
+      );
       return null;
     }
   }, []);

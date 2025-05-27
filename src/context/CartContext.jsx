@@ -1,8 +1,9 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { ProductContext } from "./ProductContext";
+import axiosInstance from "../utils/axiosInstance";
+
 
 export const CartContext = createContext();
 
@@ -12,7 +13,6 @@ const CartContextProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const currency = "$";
   const delivery_fee = 10;
-  const apiBaseUrl = "http://localhost:8000/api";
   const navigate = useNavigate();
   const { products } = useContext(ProductContext);
 
@@ -25,14 +25,13 @@ const CartContextProvider = ({ children }) => {
   const getCart = async () => {
     const token = getAuthToken();
     if (!token) {
-      // Do not navigate to login here to avoid redirect loops on mount
       return;
     }
 
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${apiBaseUrl}/cart`, {
+      const response = await axiosInstance.get(`/cart`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,8 +72,8 @@ const CartContextProvider = ({ children }) => {
     }
 
     try {
-      const response = await axios.post(
-        `${apiBaseUrl}/cart/add`,
+      const response = await axiosInstance.post(
+        "/cart/add",
         { productId, quantity: 1, size },
         {
           headers: {
@@ -114,8 +113,8 @@ const CartContextProvider = ({ children }) => {
       );
       const endpoint =
         quantity > (currentItem?.quantity || 0)
-          ? `${apiBaseUrl}/cart/increase`
-          : `${apiBaseUrl}/cart/decrease`;
+          ? `/cart/increase`
+          : `/cart/decrease`;
 
       console.log(
         "Before update - Current cartItems:",
@@ -130,7 +129,7 @@ const CartContextProvider = ({ children }) => {
         quantity
       );
 
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         endpoint,
         { productId, size },
         {
@@ -178,10 +177,10 @@ const CartContextProvider = ({ children }) => {
       navigate("/login");
       return;
     }
-
+     // Bug : Why do we need post method here? over DELETE method
     try {
-      const response = await axios.post(
-        `${apiBaseUrl}/cart/remove`,
+      const response = await axiosInstance.post(
+        `/cart/remove`,
         { productId, size },
         {
           headers: {
