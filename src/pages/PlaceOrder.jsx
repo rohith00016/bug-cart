@@ -17,14 +17,42 @@ const PlaceOrder = () => {
     email: "",
     mobile: "",
   });
-  const [shippingAddress, setShippingAddress] = useState({
-    address: "",
-    city: "",
-    state: "",
-    zip: "",
-    country: "",
-    mobile: "",
-  });
+  
+  const [error, setError] = useState("");
+
+  // Fetch user’s shipping address
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token =
+          sessionStorage.getItem("token") || localStorage.getItem("token");
+        if (!token) {
+          setError("Please log in to place an order.");
+          return;
+        }
+        const response = await axios.get(
+          "http://localhost:8000/api/auth/user",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const { shippingAddress, mobile } = response.data.userDetail;
+        if (shippingAddress) {
+          setShippingAddress({
+            address: shippingAddress.address || "",
+            city: shippingAddress.city || "",
+            state: shippingAddress.state || "",
+            postalCode: shippingAddress.zip || "",
+            country: shippingAddress.country || "",
+            mobile: mobile || "",
+          });
+        }
+      } catch (err) {
+        setError("Failed to fetch user data");
+      }
+    };
+    fetchUser();
+  }, []);
 
   const { getUserProfile } = useAuth();
 
@@ -80,7 +108,7 @@ const PlaceOrder = () => {
     }
 
     if (!isMobileValid(mobile)) {
-      alert("Please enter a valid mobile number (7–15 digits).");
+      alert("Please enter a valid mobile number (7–15 digits)."); 
       return;
     }
 

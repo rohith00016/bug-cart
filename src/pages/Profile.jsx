@@ -45,6 +45,7 @@ const Profile = () => {
     };
 
     fetchUserData();
+
   }, []);
 
   const handleChange = (e) => {
@@ -85,6 +86,7 @@ const Profile = () => {
           },
         }
       );
+   
 
       if (response.status === 200) {
         toast.success("Profile updated!");
@@ -119,7 +121,6 @@ const Profile = () => {
           type="email"
           placeholder="Email Address"
         />
-
         <input
           name="shippingAddress.street"
           value={formData.shippingAddress.street}
@@ -147,7 +148,6 @@ const Profile = () => {
             placeholder="State"
           />
         </div>
-
         <div className="flex gap-3">
           <input
             name="shippingAddress.zip"
@@ -166,7 +166,6 @@ const Profile = () => {
             placeholder="Country"
           />
         </div>
-
         <input
           name="mobile"
           value={formData.mobile}
@@ -175,7 +174,6 @@ const Profile = () => {
           type="text"
           placeholder="Mobile"
         />
-
         <div className="w-full mt-4 text-end">
           <button
             onClick={handleSave}

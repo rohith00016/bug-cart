@@ -7,6 +7,7 @@ export const OrderContext = createContext();
 const OrderContextProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
 
+
   // Bug: Fetch user orders
   const fetchUserOrders = async () => {
     const token = localStorage.getItem("token");
@@ -33,7 +34,7 @@ const OrderContextProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axiosInstance.post(
-        `/order`,
+        `/order`,   
         { shippingAddress },
         {
           headers: {
