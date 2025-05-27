@@ -5,7 +5,7 @@ import Title from "../components/Title";
 import ProductItem from "../components/ProductItem";
 
 const Collection = () => {
-  const { products, fetchProducts, totalPages, currentPage, isLoading, error } =
+  const { products, fetchProducts, totalPages, isLoading, error } =
     useContext(ProductContext);
   const [showFilter, setShowFilter] = useState(false);
   const [category, setCategory] = useState([]);
@@ -164,7 +164,7 @@ const Collection = () => {
         {/* Map Products */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 gap-y-6">
           {Array.isArray(products) && products.length > 0 ? (
-            products.map((item, index) => (
+            products.map((item) => (
               <ProductItem
                 key={item._id} // Use unique _id instead of index
                 id={item._id}

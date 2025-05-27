@@ -1,65 +1,104 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import { OrderContext } from "../context/OrderContext";
 import SuccessModal from "../components/SuccessModal";
+import { useAuth } from "../context/AuthContext";
 
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
   const [showModal, setShowModal] = useState(false);
   const { navigate, cartItems, resetContextData } = useContext(ShopContext);
   const { placeOrder } = useContext(OrderContext);
-
-  // State for shipping address
-  const [shippingAddress, setShippingAddress] = useState({
-    firstName: "",
-    lastName: "",
+  const [userDetails, setUserDetails] = useState({
+    name: "",
     email: "",
+    mobile: "",
+  });
+  const [shippingAddress, setShippingAddress] = useState({
     address: "",
     city: "",
     state: "",
-    postalCode: "",
+    zip: "",
     country: "",
     mobile: "",
   });
+
+  const { getUserProfile } = useAuth();
+
+  // Get user profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const { name, email, mobile, shippingAddress } = await getUserProfile();
+        setUserDetails((prev) => ({
+          ...prev,
+          name: name,
+          email: email,
+          mobile: mobile,
+        }));
+        setShippingAddress((prev) => ({
+          ...prev,
+          ...shippingAddress,
+        }));
+      } catch (err) {
+        console.error("Error fetching profile:", err.message);
+      }
+    };
+
+    fetchProfile();
+  }, [getUserProfile]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setShippingAddress((prev) => ({ ...prev, [name]: value }));
   };
+  const handleUserDetailsChange = (e) => {
+    const { name, value } = e.target;
+    setUserDetails((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handlePlaceOrder = async () => {
-    // Validate shipping address
-    if (
-      !shippingAddress.firstName ||
-      !shippingAddress.lastName ||
-      !shippingAddress.email ||
-      !shippingAddress.address ||
-      !shippingAddress.city ||
-      !shippingAddress.postalCode ||
-      !shippingAddress.country ||
-      !shippingAddress.mobile
-    ) {
-      alert("Please fill in all shipping address fields");
+    const { city, zip: postalCode, country } = shippingAddress;
+    const { name, email, mobile } = userDetails;
+
+    const isEmailValid = (email) =>
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+    const isMobileValid = (mobile) => /^[0-9]{7,15}$/.test(mobile.trim());
+
+    if (!email || !city || !postalCode || !country || !mobile) {
+      alert("Please fill in all shipping address fields.");
+      return;
+    }
+
+    if (!isEmailValid(email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    if (!isMobileValid(mobile)) {
+      alert("Please enter a valid mobile number (7–15 digits).");
       return;
     }
 
     try {
       await placeOrder(
         {
-          address: `${shippingAddress.address}, ${shippingAddress.firstName} ${shippingAddress.lastName}, ${shippingAddress.mobile}`,
-          city: shippingAddress.city,
-          postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country,
+          address: `${name} ${city}`,
+          city,
+          postalCode,
+          country,
         },
         cartItems,
         resetContextData
       );
       setShowModal(true);
     } catch (error) {
-      // Error is handled in OrderContext via toast
+      console.error("Error placing order:", error);
+      alert("Failed to place order. Please try again.");
     }
   };
 
@@ -70,45 +109,28 @@ const PlaceOrder = () => {
 
   return (
     <>
-      <div className="flex flex-col justify-between gap-4 pt-5 sm:flex-row sm:pt-14 min-h-[80vh] border-t">
+      <div className="flex flex-col justify-evenly gap-4 pt-5 sm:flex-row sm:pt-14 min-h-[80vh] border-t">
         {/* Left Side Content */}
         <div className="flex flex-col w-full gap-4 sm:max-w-[480px]">
           <div className="my-3 text-xl sm:text-2xl">
             <Title text1={"DELIVERY"} text2={"INFORMATION"} />
           </div>
-          <div className="flex gap-3">
-            <input
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-              type="text"
-              name="firstName"
-              placeholder="First Name"
-              value={shippingAddress.firstName}
-              onChange={handleInputChange}
-            />
-            <input
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-              type="text"
-              name="lastName"
-              placeholder="Last Name"
-              value={shippingAddress.lastName}
-              onChange={handleInputChange}
-            />
-          </div>
           <input
-            className="w-full px-4 py-2 border border-gray-300 rounded"
+            className="w-full px-4 py-2 border border-gray-300 rounded disabled:bg-gray-100 cursor-not-allowed"
             type="email"
             name="email"
             placeholder="Email Address"
-            value={shippingAddress.email}
-            onChange={handleInputChange}
+            value={userDetails.email}
+            onChange={handleUserDetailsChange}
+            disabled
           />
           <input
             className="w-full px-4 py-2 border border-gray-300 rounded"
             type="text"
             name="address"
             placeholder="Street"
-            value={shippingAddress.address}
-            onChange={handleInputChange}
+            value={shippingAddress.country}
+            onChange={handleUserDetailsChange}
           />
           <div className="flex gap-3">
             <input
@@ -134,7 +156,7 @@ const PlaceOrder = () => {
               type="text"
               name="postalCode"
               placeholder="Zip Code"
-              value={shippingAddress.postalCode}
+              value={shippingAddress.zip}
               onChange={handleInputChange}
             />
             <input
@@ -151,7 +173,7 @@ const PlaceOrder = () => {
             type="tel"
             name="mobile"
             placeholder="Mobile"
-            value={shippingAddress.mobile}
+            value={userDetails.mobile}
             onChange={handleInputChange}
           />
         </div>

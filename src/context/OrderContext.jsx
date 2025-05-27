@@ -1,34 +1,39 @@
 import { createContext, useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
+import axiosInstance from "../utils/axiosInstance";
 
 export const OrderContext = createContext();
 
-const OrderContextProvider = (props) => {
+const OrderContextProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
-  const apiBaseUrl = "http://localhost:8000/api"; 
 
-  // Fetch user orders
+  // Bug: Fetch user orders
   const fetchUserOrders = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      console.error("No token found. User may not be authenticated.");
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${apiBaseUrl}/order`, {
+      const response = await axiosInstance.get(`/order`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       setOrders(response.data);
     } catch (error) {
-      throw error;
+      console.error("Failed to fetch user orders:", error);
     }
   };
 
   // Place a new order
   const placeOrder = async (shippingAddress, cartItems, resetCart) => {
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await axios.post(
-        `${apiBaseUrl}/orders`,
+      const token = localStorage.getItem("token");
+      const response = await axiosInstance.post(
+        `/order`,
         { shippingAddress },
         {
           headers: {
@@ -53,15 +58,9 @@ const OrderContextProvider = (props) => {
     fetchUserOrders();
   }, []);
 
-  const value = {
-    orders,
-    fetchUserOrders,
-    placeOrder,
-  };
-
   return (
-    <OrderContext.Provider value={value}>
-      {props.children}
+    <OrderContext.Provider value={{ orders, fetchUserOrders, placeOrder }}>
+      {children}
     </OrderContext.Provider>
   );
 };

@@ -3,23 +3,20 @@ import { createContext, useState } from "react";
 export const ReviewContext = createContext();
 
 const ReviewContextProvider = ({ children }) => {
-  const [reviews, setReviews] = useState({});
+  const [reviews, setReviews] = useState([]); // stays as an array
 
-  // Add a review for a product
+  // Add a review to the reviews
   const addReview = (productId, review) => {
-    setReviews((prev) => ({
-      ...prev,
-      [productId]: [...(prev[productId] || []), review],
-    }));
+    setReviews((prevReviews) => [
+      ...prevReviews,
+      { productId, ...review },
+    ]);
   };
-
-  const value = {
-    reviews,
-    addReview,
-  };
-
+  
   return (
-    <ReviewContext.Provider value={value}>{children}</ReviewContext.Provider>
+    <ReviewContext.Provider value={{ reviews, addReview }}>
+      {children}
+    </ReviewContext.Provider>
   );
 };
 

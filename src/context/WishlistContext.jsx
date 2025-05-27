@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 
 export const WishlistContext = createContext();
 
@@ -11,7 +11,7 @@ const WishlistContextProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isFetched, setIsFetched] = useState(false);
-  const apiBaseUrl = "http://localhost:8000/api";
+  
   const navigate = useNavigate();
 
   // Get auth token
@@ -33,7 +33,7 @@ const WishlistContextProvider = ({ children }) => {
     setError(null);
     console.log("Fetching wishlist...");
     try {
-      const response = await axios.get(`${apiBaseUrl}/wishlist`, {
+      const response = await axiosInstance.get(`/wishlist`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -81,8 +81,8 @@ const WishlistContextProvider = ({ children }) => {
     setIsLoading(true);
     try {
       console.log("Adding to wishlist, productId:", productId);
-      const response = await axios.post(
-        `${apiBaseUrl}/wishlist/add`,
+      const response = await axiosInstance.post(
+        `/wishlist/add`,
         { productId },
         {
           headers: {
@@ -126,8 +126,8 @@ const WishlistContextProvider = ({ children }) => {
     setIsLoading(true);
     try {
       console.log("Removing from wishlist, productId:", productId);
-      const response = await axios.post(
-        `${apiBaseUrl}/wishlist/remove`,
+      const response = await axiosInstance.post(
+        `/wishlist/remove`,
         { productId },
         {
           headers: {

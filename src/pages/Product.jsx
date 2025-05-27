@@ -2,29 +2,33 @@ import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 import { ProductContext } from "../context/ProductContext";
-import { ReviewContext } from "../context/ReviewContext";
 import { assets } from "../assets/assets";
 import RelatedProducts from "../components/RelatedProducts";
 import { toast } from "react-toastify";
+import axiosInstance from "../utils/axiosInstance";
 
 const Product = () => {
   const { productId } = useParams();
   const { currency, addToCart } = useContext(CartContext);
   const { fetchProductById } = useContext(ProductContext);
-  const { reviews } = useContext(ReviewContext);
   const [productData, setProductData] = useState(null);
   const [image, setImage] = useState("");
   const [size, setSize] = useState("");
   const [selectedTab, setSelectedTab] = useState("description");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [feedbacks, setFeedbacks] = useState([]);
 
+  // Todo : To Get Product & Reviews Data
   useEffect(() => {
     const fetchProduct = async () => {
       setIsLoading(true);
       setError(null);
       try {
         const product = await fetchProductById(productId);
+        const response = await axiosInstance.get(`/review/${productId}`);
+        setFeedbacks(response.data);
+
         if (product) {
           setProductData(product);
           setImage(product.image[0]);
@@ -43,13 +47,22 @@ const Product = () => {
     fetchProduct();
   }, [productId, fetchProductById]);
 
-  const productReviews = reviews[productId] || [];
+  // Todo : To delete a review
+  // const deleteReview = async (reviewId) => {
+  //   try {
+  //     await axiosInstance.delete(`/review/${reviewId}`);
+  //     const updatedReviews = feedbacks.filter(
+  //       (review) => review._id !== reviewId
+  //     );
+  //     setFeedbacks(updatedReviews);
+  //     toast.success("Review deleted successfully");
+  //   } catch (error) {
+  //     console.error("Error deleting review:", error);
+  //     toast.error("Failed to delete review");
+  //   }
+  // };
 
-  // Calculate average rating
-  const averageRating = productReviews.length
-    ? productReviews.reduce((acc, cur) => acc + cur.rating, 0) /
-      productReviews.length
-    : 0;
+  const productReviews = feedbacks;
 
   if (isLoading) {
     return <div className="pt-10 text-center">Loading...</div>;
@@ -68,7 +81,7 @@ const Product = () => {
           <div className="flex justify-between overflow-x-auto sm:flex-col sm:overflow-y-scroll sm:justify-normal sm:w-[18.7%] w-full">
             {productData.image.map((item, index) => (
               <img
-                src={`http://localhost:8000/images/${item}.png`}
+                src={`https://bug-cart-server.onrender.com/images/${item}.png`}
                 key={index}
                 onClick={() => setImage(item)}
                 className={`w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer ${
@@ -80,7 +93,7 @@ const Product = () => {
           </div>
           <div className="w-full sm:w-[80%]">
             <img
-              src={`http://localhost:8000/images/${image}.png`}
+              src={`https://bug-cart-server.onrender.com/images/${image}.png`}
               className="w-full h-auto"
               alt="Product"
             />
@@ -95,9 +108,7 @@ const Product = () => {
               <img
                 key={i}
                 src={
-                  i < Math.floor(averageRating)
-                    ? assets.star_icon
-                    : assets.star_dull_icon
+                  i < Math.floor(1) ? assets.star_icon : assets.star_dull_icon
                 }
                 alt="Ratings"
                 className="w-3.5"
@@ -169,7 +180,7 @@ const Product = () => {
             }`}
             onClick={() => setSelectedTab("reviews")}
           >
-            Reviews ({productReviews.length})
+            Reviews ({productReviews.reviews.length})
           </button>
         </div>
 
@@ -184,29 +195,34 @@ const Product = () => {
           </div>
         ) : (
           <div className="px-6 py-6 text-sm text-gray-500 border">
-            {productReviews.length === 0 ? (
+            {productReviews.reviews.length === 0 ? (
               <p>No reviews submitted yet.</p>
             ) : (
-              productReviews.map(({ rating, review, date }, idx) => (
-                <div key={idx} className="border-b py-4">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <img
-                        key={i}
-                        src={
-                          i < rating ? assets.star_icon : assets.star_dull_icon
-                        }
-                        alt="Star"
-                        className="w-3.5 h-3.5"
-                      />
-                    ))}
+              productReviews.reviews.map(
+                ({ rating, comment, createdAt, userId }, idx) => (
+                  <div key={idx} className="border-b py-4">
+                    <p className="text-xs text-gray-400 mb-2.5">
+                      {userId?.name && <span>{userId.name} · </span>}
+                      {new Date(createdAt).toLocaleDateString()}
+                    </p>
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <img
+                          key={i}
+                          src={
+                            i < rating
+                              ? assets.star_icon
+                              : assets.star_dull_icon
+                          }
+                          alt="Star"
+                          className="w-3.5 h-3.5"
+                        />
+                      ))}
+                    </div>
+                    <p className="mt-2 font-medium">{comment}</p>
                   </div>
-                  <p className="mt-2">{review}</p>
-                  <p className="text-xs text-gray-400">
-                    {new Date(date).toLocaleDateString()}
-                  </p>
-                </div>
-              ))
+                )
+              )
             )}
           </div>
         )}

@@ -1,9 +1,8 @@
-import React from 'react'
 import { assets } from '../assets/assets'
 
 const Hero = () => {
   return (
-    <div className='flex flex-col border border-gray-400 sm:flex-row'>
+    <div className='flex flex-col border border-gray-200 sm:flex-row'>
         {/* Hero left side */}
         <div className='flex items-center justify-center w-full py-10 sm:w-1/2 sm:py-0'>
             <div className='text-[#414141]'>
