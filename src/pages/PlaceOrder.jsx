@@ -6,11 +6,12 @@ import { ShopContext } from "../context/ShopContext";
 import { OrderContext } from "../context/OrderContext";
 import SuccessModal from "../components/SuccessModal";
 import { useAuth } from "../context/AuthContext";
-import axiosInstance from "../utils/axiosInstance";
 
 const PlaceOrder = () => {
   const { navigate, cartItems, resetContextData } = useContext(ShopContext);
   const { placeOrder } = useContext(OrderContext);
+  const { getUserProfile } = useAuth();
+
   const [userDetails, setUserDetails] = useState({
     name: "",
     email: "",
@@ -25,68 +26,30 @@ const PlaceOrder = () => {
     mobile: "",
   });
   const [showModal, setShowModal] = useState(false);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token =
-          sessionStorage.getItem("token") || localStorage.getItem("token");
-        if (!token) {
-          toast.error("Please log in to place an order.");
-          return;
-        }
-        const response = await axiosInstance.get(
-          "http://localhost:8000/api/auth/user",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        if (response.data && response.data.user) {
-          const { shippingAddress, mobile } = response.data.user;
-          if (shippingAddress) {
-            setShippingAddress({
-              street: shippingAddress.street || "",
-              city: shippingAddress.city || "",
-              state: shippingAddress.state || "",
-              zip: shippingAddress.zip || "",
-              country: shippingAddress.country || "",
-              mobile: mobile || "",
-            });
-          }
-        } else {
-          toast.error("User data not found in response.");
-        }
-      } catch (err) {
-        console.error("Error fetching user data:", err);
-        toast.error("Failed to fetch user data. Please try again.");
-      }
-    };
-    fetchUser();
-  }, []);
-
-  const { getUserProfile } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
+      setLoading(true);
       try {
         const { name, email, mobile, shippingAddress } = await getUserProfile();
-        setUserDetails((prev) => ({
-          ...prev,
+        setUserDetails({
           name: name || "",
           email: email || "",
           mobile: mobile || "",
-        }));
-        setShippingAddress((prev) => ({
-          ...prev,
+        });
+        setShippingAddress({
           street: shippingAddress?.street || "",
           city: shippingAddress?.city || "",
           state: shippingAddress?.state || "",
           zip: shippingAddress?.zip || "",
           country: shippingAddress?.country || "",
           mobile: shippingAddress?.mobile || "",
-        }));
+        });
       } catch (err) {
-        toast.error("Failed to fetch user profile. Please try again.");
+        toast.error(err.message || "Failed to fetch user profile.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchProfile();
@@ -126,6 +89,7 @@ const PlaceOrder = () => {
       return;
     }
 
+    setLoading(true);
     try {
       await placeOrder(
         {
@@ -142,6 +106,8 @@ const PlaceOrder = () => {
     } catch (error) {
       console.error("Error placing order:", error);
       toast.error("Failed to place order. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -149,6 +115,15 @@ const PlaceOrder = () => {
     setShowModal(false);
     navigate("/orders");
   };
+
+  // Show loader
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <p className="text-lg font-semibold">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <>

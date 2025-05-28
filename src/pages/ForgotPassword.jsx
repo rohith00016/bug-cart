@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import axios from "axios";
+import { useState } from "react";
+import axiosInstance from "../utils/axiosInstance";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -7,7 +7,7 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:8000/forgot-password", {email });
+      const res = await axiosInstance.post("/auth/forgot-password", { email });
       alert(res.data.message || "Check your email for reset instructions");
     } catch (error) {
       alert(error.response?.data?.message || "Error sending reset link");
@@ -33,7 +33,10 @@ const ForgotPassword = () => {
         required
       />
 
-      <button type="submit" className="px-8 py-2 mt-4 font-light text-white bg-black">
+      <button
+        type="submit"
+        className="px-8 py-2 mt-4 font-light text-white bg-black"
+      >
         Send Reset Link
       </button>
     </form>

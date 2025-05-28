@@ -27,7 +27,9 @@ const ProductItem = ({ id, image, name, price }) => {
             className="transition ease-in-out hover:scale-110"
             src={
               image && image[0]
-                ? `http://localhost:8000/images/${image[0]}.png`
+                ? `${import.meta.env.VITE_IMAGE_BASE_URL}/images/${
+                    image[0]
+                  }.png`
                 : ""
             }
             alt={name || "Product"}
