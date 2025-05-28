@@ -8,7 +8,8 @@ import { HiOutlineHeart } from "react-icons/hi";
 
 const NavBar = () => {
   const navigate = useNavigate();
-  const { setShowSearch, resetContextData } = useContext(ShopContext);
+  const { setShowSearch, resetContextData, showSearch } =
+    useContext(ShopContext);
   const { getCartCount } = useContext(CartContext);
   const { wishlistItems, setWishlistItems, resetWishlist } =
     useContext(WishlistContext);
@@ -72,7 +73,7 @@ const NavBar = () => {
 
         <div className="flex items-center gap-6">
           <img
-            onClick={() => setShowSearch(true)}
+            onClick={() => setShowSearch(!showSearch)}
             src={assets.search_icon}
             className="w-5 cursor-pointer"
             alt="Search"

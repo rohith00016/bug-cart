@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 
 // Create context
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 // Auth Provider
 export const AuthProvider = ({ children }) => {

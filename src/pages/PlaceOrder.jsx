@@ -6,6 +6,7 @@ import { ShopContext } from "../context/ShopContext";
 import { OrderContext } from "../context/OrderContext";
 import SuccessModal from "../components/SuccessModal";
 import { useAuth } from "../context/AuthContext";
+import axiosInstance from "../utils/axiosInstance";
 
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
@@ -19,15 +20,15 @@ const PlaceOrder = () => {
   });
 
   const [shippingAddress, setShippingAddress] = useState({
-    address: "",
+    street: "",
     city: "",
     state: "",
-    postalCode: "",
+    zip: "",
     country: "",
     mobile: "",
   });
 
-  const [error, setError] = useState("");
+  const [setError] = useState("");
 
   // Fetch user’s shipping address
   useEffect(() => {
@@ -39,7 +40,7 @@ const PlaceOrder = () => {
           setError("Please log in to place an order.");
           return;
         }
-        const response = await axios.get(
+        const response = await axiosInstance.get(
           "http://localhost:8000/api/auth/user",
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -48,15 +49,16 @@ const PlaceOrder = () => {
         const { shippingAddress, mobile } = response.data.userDetail;
         if (shippingAddress) {
           setShippingAddress({
-            address: shippingAddress.address || "",
+            street: shippingAddress.street || "",
             city: shippingAddress.city || "",
             state: shippingAddress.state || "",
-            postalCode: shippingAddress.zip || "",
+            zip: shippingAddress.zip || "",
             country: shippingAddress.country || "",
             mobile: mobile || "",
           });
         }
       } catch (err) {
+        console.log(err)
         setError("Failed to fetch user data");
       }
     };
@@ -98,7 +100,7 @@ const PlaceOrder = () => {
   };
 
   const handlePlaceOrder = async () => {
-    const { city, zip: postalCode, country } = shippingAddress;
+    const { city, zip, country,street,state  } = shippingAddress;
     const { name, email, mobile } = userDetails;
 
     const isEmailValid = (email) =>
@@ -106,13 +108,13 @@ const PlaceOrder = () => {
 
     const isMobileValid = (mobile) => /^[0-9]{7,15}$/.test(mobile.trim());
 
-    if (!email || !city || !postalCode || !country || !mobile) {
+    if (!state || !city || !zip || !country || !mobile || !street) {
       alert("Please fill in all shipping address fields.");
       return;
     }
 
+    alert("Please enter a valid email address.");
     if (!isEmailValid(email)) {
-      alert("Please enter a valid email address.");
       return;
     }
 
@@ -124,10 +126,11 @@ const PlaceOrder = () => {
     try {
       await placeOrder(
         {
-          address: `${name} ${city}`,
+          street: `${name} ${city}`,
           city,
-          postalCode,
+          zip,
           country,
+          state
         },
         cartItems,
         resetContextData

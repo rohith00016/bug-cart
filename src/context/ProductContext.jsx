@@ -25,7 +25,6 @@ const ProductContextProvider = ({ children }) => {
       try {
         const productsData = await fetchProductsFromHook({
           ...options,
-          search,
         });
         setProducts(productsData.products || []);
         setTotalPages(productsData.totalPages || 1);
@@ -37,7 +36,7 @@ const ProductContextProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [fetchProductsFromHook, search]
+    [fetchProductsFromHook]
   );
 
   // Fetch products on mount
