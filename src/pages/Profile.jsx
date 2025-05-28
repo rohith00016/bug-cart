@@ -17,16 +17,15 @@ const Profile = () => {
     },
     mobile: "",
   });
+
+  const [loading, setLoading] = useState(false);
   const { getUserProfile } = useAuth();
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const storedUser = localStorage.getItem("user");
-      if (!storedUser) return;
-
+      setLoading(true);
       try {
-        const response = await getUserProfile(storedUser);
-        const user = response;
+        const user = await getUserProfile();
         setFormData({
           name: user.name || "",
           email: user.email || "",
@@ -41,6 +40,9 @@ const Profile = () => {
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
+        toast.error("Failed to fetch user profile.");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -74,6 +76,7 @@ const Profile = () => {
       mobile: formData.mobile,
     };
 
+    setLoading(true);
     try {
       const response = await axiosInstance.post(
         `/auth/update-profile`,
@@ -92,8 +95,19 @@ const Profile = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <p className="text-lg font-semibold">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-center min-h-[80vh] border-t pt-[5%] sm:pt-10">
       <div className="flex flex-col gap-4 w-full max-w-[480px]">
@@ -114,11 +128,12 @@ const Profile = () => {
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="disabled:bg-gray-100 cursor-not-allowed w-full px-4 py-2 border border-gray-300 rounded "
+          className="disabled:bg-gray-100 cursor-not-allowed w-full px-4 py-2 border border-gray-300 rounded"
           type="email"
           disabled
           placeholder="Email Address"
         />
+
         <input
           name="shippingAddress.street"
           value={formData.shippingAddress.street}
@@ -146,6 +161,7 @@ const Profile = () => {
             placeholder="State"
           />
         </div>
+
         <div className="flex gap-3">
           <input
             name="shippingAddress.zip"
@@ -164,6 +180,7 @@ const Profile = () => {
             placeholder="Country"
           />
         </div>
+
         <input
           name="mobile"
           value={formData.mobile}
@@ -172,6 +189,7 @@ const Profile = () => {
           type="text"
           placeholder="Mobile"
         />
+
         <div className="w-full mt-4 text-end">
           <button
             onClick={handleSave}
