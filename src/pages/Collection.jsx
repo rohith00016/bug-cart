@@ -3,6 +3,7 @@ import { ProductContext } from "../context/ProductContext";
 import { assets } from "../assets/assets";
 import Title from "../components/Title";
 import ProductItem from "../components/ProductItem";
+import { ShopContext } from "../context/ShopContext";
 
 const Collection = () => {
   const { products, fetchProducts, totalPages, isLoading, error } =
@@ -12,6 +13,7 @@ const Collection = () => {
   const [subCategory, setSubCategory] = useState([]);
   const [sortType, setSortType] = useState("relevant");
   const [page, setPage] = useState(1);
+  const { search } = useContext(ShopContext);
 
   const getQueryParams = () => ({
     page,
@@ -23,11 +25,25 @@ const Collection = () => {
         : "",
     category: category.join(","),
     subCategory: subCategory.join(","),
+    search,
   });
 
+  const filteredParams = {
+    page,
+    sort:
+      sortType === "low-high"
+        ? "lowToHigh"
+        : sortType === "high-low"
+        ? "highToLow"
+        : "",
+    category: category.join(","),
+    subCategory: subCategory.join(","),
+    search,
+  };
+  // Todo : to get products
   useEffect(() => {
-    fetchProducts(getQueryParams());
-  }, [fetchProducts, category, subCategory, sortType, page]);
+    fetchProducts(filteredParams);
+  }, [fetchProducts, category, subCategory, sortType, page, search]);
 
   const toggleCategory = (e) => {
     const value = e.target.value;
