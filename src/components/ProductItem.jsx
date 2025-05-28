@@ -34,7 +34,7 @@ const ProductItem = ({ id, image, name, price }) => {
             className="transition ease-in-out hover:scale-110"
             src={
               image && image[0]
-                ? `https://trendify-server-dbfm.onrender.com/images/${image[0]}.png`
+                ? `http://localhost:8000/images/${image[0]}.png`
                 : ""
             }
             alt={name || "Product"}

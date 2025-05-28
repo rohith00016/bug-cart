@@ -17,7 +17,16 @@ const PlaceOrder = () => {
     email: "",
     mobile: "",
   });
-  
+
+  const [shippingAddress, setShippingAddress] = useState({
+    address: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "",
+    mobile: "",
+  });
+
   const [error, setError] = useState("");
 
   // Fetch user’s shipping address
@@ -108,7 +117,7 @@ const PlaceOrder = () => {
     }
 
     if (!isMobileValid(mobile)) {
-      alert("Please enter a valid mobile number (7–15 digits)."); 
+      alert("Please enter a valid mobile number (7–15 digits).");
       return;
     }
 

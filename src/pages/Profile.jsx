@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Title from "../components/Title";
 import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-toastify";
-import {useAuth} from "../context/AuthContext"
+import { useAuth } from "../context/AuthContext";
 
 const Profile = () => {
   const [formData, setFormData] = useState({
@@ -26,7 +26,7 @@ const Profile = () => {
 
       try {
         const response = await getUserProfile(storedUser);
-        const user = response
+        const user = response;
         setFormData({
           name: user.name || "",
           email: user.email || "",
@@ -45,7 +45,6 @@ const Profile = () => {
     };
 
     fetchUserData();
-
   }, []);
 
   const handleChange = (e) => {
@@ -86,7 +85,6 @@ const Profile = () => {
           },
         }
       );
-   
 
       if (response.status === 200) {
         toast.success("Profile updated!");
@@ -96,7 +94,7 @@ const Profile = () => {
       toast.error("Failed to update profile. Please try again.");
     }
   };
-  console.log(formData)
+  console.log(formData);
   return (
     <div className="flex items-center justify-center min-h-[80vh] border-t pt-[5%] sm:pt-10">
       <div className="flex flex-col gap-4 w-full max-w-[480px]">
@@ -117,8 +115,9 @@ const Profile = () => {
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded"
+          className="disabled:bg-gray-100 cursor-not-allowed w-full px-4 py-2 border border-gray-300 rounded "
           type="email"
+          disabled
           placeholder="Email Address"
         />
         <input

@@ -1,21 +1,32 @@
-import { useContext, useEffect, useState } from "react";
-import { ProductContext } from "../context/ProductContext";
+import { useEffect, useState } from "react";
 import Title from "../components/Title";
 import ProductItem from "../components/ProductItem";
+import useProduct from "../hooks/useProduct";
+import { toast } from "react-toastify";
 
 const RelatedProducts = ({ category, subCategory }) => {
-  const { products, isLoading } = useContext(ProductContext);
+  const { fetchRelatedProducts } = useProduct();
   const [related, setRelated] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (products && products.length > 0) {
-      let productsCopy = products.filter((item) => category === item.category);
-      productsCopy = productsCopy.filter(
-        (item) => subCategory === item.subCategory
-      );
-      setRelated(productsCopy.slice(0, 5));
-    }
-  }, [products, category, subCategory]);
+    const fetchData = async () => {
+      if (category && subCategory) {
+        setIsLoading(true);
+        try {
+          const products = await fetchRelatedProducts(category, subCategory);
+          setRelated(products);
+        } catch (err) {
+          setError(err.message || "Failed to fetch related products");
+          toast.error(err.message || "Failed to fetch related products");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    fetchData();
+  }, [category, subCategory, fetchRelatedProducts]);
 
   return (
     <div className="my-24">
@@ -24,6 +35,8 @@ const RelatedProducts = ({ category, subCategory }) => {
       </div>
       {isLoading ? (
         <p>Loading related products...</p>
+      ) : error ? (
+        <p>{error}</p>
       ) : related.length === 0 ? (
         <p>No related products available.</p>
       ) : (
