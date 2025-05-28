@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { ProductContext } from "./ProductContext";
 import axiosInstance from "../utils/axiosInstance";
 
-
 export const CartContext = createContext();
 
 const CartContextProvider = ({ children }) => {
@@ -116,19 +115,6 @@ const CartContextProvider = ({ children }) => {
           ? `/cart/increase`
           : `/cart/decrease`;
 
-      console.log(
-        "Before update - Current cartItems:",
-        JSON.stringify(cartItems, null, 2)
-      );
-      console.log(
-        "Updating quantity for productId:",
-        productId,
-        "size:",
-        size,
-        "to:",
-        quantity
-      );
-
       const response = await axiosInstance.post(
         endpoint,
         { productId, size },
@@ -139,21 +125,12 @@ const CartContextProvider = ({ children }) => {
         }
       );
 
-      console.log(
-        "Update Quantity Response:",
-        JSON.stringify(response.data, null, 2)
-      );
-
       if (!response.data.items || !Array.isArray(response.data.items)) {
         console.error("Invalid response: items is not an array", response.data);
         throw new Error("Invalid cart items response from server");
       }
 
       setCartItems(response.data.items);
-      console.log(
-        "After update - New cartItems:",
-        JSON.stringify(response.data.items, null, 2)
-      );
 
       toast.success(
         quantity === 0 ? "Item Removed From The Cart" : "Cart Updated"
@@ -177,7 +154,7 @@ const CartContextProvider = ({ children }) => {
       navigate("/login");
       return;
     }
-     // Bug : Why do we need post method here? over DELETE method
+    // Bug : Why do we need post method here? over DELETE method
     try {
       const response = await axiosInstance.post(
         `/cart/remove`,

@@ -8,24 +8,17 @@ import { HiOutlineHeart } from "react-icons/hi";
 
 const NavBar = () => {
   const navigate = useNavigate();
-  const { setShowSearch, resetContextData, showSearch } =
-    useContext(ShopContext);
+  const { setShowSearch, showSearch } = useContext(ShopContext);
   const { getCartCount } = useContext(CartContext);
-  const { wishlistItems, setWishlistItems, resetWishlist } =
-    useContext(WishlistContext);
+  const { wishlistItems, setWishlistItems } = useContext(WishlistContext);
 
   const isLoggedIn = !!localStorage.getItem("token");
 
   const getWishlistCount = () => Object.keys(wishlistItems || {}).length;
 
   const handleLogout = () => {
-    console.log("Logging out, resetting wishlist...");
-    resetContextData();
-    sessionStorage.removeItem("token");
     localStorage.removeItem("token");
     setWishlistItems({});
-    localStorage.removeItem("wishlistItems");
-    resetWishlist();
     navigate("/login");
   };
 

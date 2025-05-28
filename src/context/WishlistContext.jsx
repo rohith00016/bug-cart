@@ -11,13 +11,12 @@ const WishlistContextProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isFetched, setIsFetched] = useState(false);
-  
+
   const navigate = useNavigate();
 
   // Get auth token
   const getAuthToken = () => {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    console.log("getAuthToken called, token:", token);
+    const token = localStorage.getItem("token");
     return token;
   };
 
@@ -25,13 +24,11 @@ const WishlistContextProvider = ({ children }) => {
   const getWishlist = useCallback(async () => {
     const token = getAuthToken();
     if (!token || isFetched) {
-      console.log("Skipping getWishlist, isFetched:", isFetched);
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    console.log("Fetching wishlist...");
     try {
       const response = await axiosInstance.get(`/wishlist`, {
         headers: {
@@ -39,7 +36,6 @@ const WishlistContextProvider = ({ children }) => {
         },
       });
       const items = response.data.items || [];
-      console.log("Wishlist fetched, response:", response.data);
       setWishlistData(items);
       setWishlistItems(
         items.reduce((acc, item) => {
@@ -54,7 +50,6 @@ const WishlistContextProvider = ({ children }) => {
       toast.error(errorMsg);
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
-        sessionStorage.removeItem("token");
         navigate("/login");
       }
     } finally {
@@ -80,7 +75,6 @@ const WishlistContextProvider = ({ children }) => {
 
     setIsLoading(true);
     try {
-      console.log("Adding to wishlist, productId:", productId);
       const response = await axiosInstance.post(
         `/wishlist/add`,
         { productId },
@@ -90,7 +84,6 @@ const WishlistContextProvider = ({ children }) => {
           },
         }
       );
-      console.log("Add to wishlist response:", response.data);
       const items = response.data.items || [];
       setWishlistData(items);
       setWishlistItems(
@@ -106,7 +99,6 @@ const WishlistContextProvider = ({ children }) => {
       toast.error(errorMsg);
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
-        sessionStorage.removeItem("token");
         navigate("/login");
       }
     } finally {
@@ -125,7 +117,6 @@ const WishlistContextProvider = ({ children }) => {
 
     setIsLoading(true);
     try {
-      console.log("Removing from wishlist, productId:", productId);
       const response = await axiosInstance.post(
         `/wishlist/remove`,
         { productId },
@@ -135,7 +126,6 @@ const WishlistContextProvider = ({ children }) => {
           },
         }
       );
-      console.log("Remove from wishlist response:", response.data);
       const items = response.data.items || [];
       setWishlistData(items);
       setWishlistItems(
@@ -146,7 +136,8 @@ const WishlistContextProvider = ({ children }) => {
       );
       toast.success("Item Removed From Wishlist");
     } catch (err) {
-      const errorMsg = err.response?.data?.error || "Failed to remove from wishlist";
+      const errorMsg =
+        err.response?.data?.error || "Failed to remove from wishlist";
       console.error("Remove from wishlist error:", err.response?.data || err);
       toast.error(errorMsg);
       if (err.response?.status === 401) {
@@ -159,13 +150,6 @@ const WishlistContextProvider = ({ children }) => {
     }
   };
 
-  // Reset wishlist (e.g., on logout)
-  const resetWishlist = () => {
-    setWishlistData([]);
-    setWishlistItems({});
-    setIsFetched(false);
-  };
-
   const value = {
     wishlistData,
     wishlistItems,
@@ -176,10 +160,13 @@ const WishlistContextProvider = ({ children }) => {
     addToWishlist,
     removeFromWishlist,
     fetchWishlist: getWishlist,
-    resetWishlist,
   };
 
-  return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
+  return (
+    <WishlistContext.Provider value={value}>
+      {children}
+    </WishlistContext.Provider>
+  );
 };
 
 export default WishlistContextProvider;

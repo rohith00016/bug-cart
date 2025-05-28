@@ -1,7 +1,7 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
-import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import { OrderContext } from "../context/OrderContext";
 import SuccessModal from "../components/SuccessModal";
@@ -9,8 +9,6 @@ import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
 
 const PlaceOrder = () => {
-  const [method, setMethod] = useState("cod");
-  const [showModal, setShowModal] = useState(false);
   const { navigate, cartItems, resetContextData } = useContext(ShopContext);
   const { placeOrder } = useContext(OrderContext);
   const [userDetails, setUserDetails] = useState({
@@ -18,7 +16,6 @@ const PlaceOrder = () => {
     email: "",
     mobile: "",
   });
-
   const [shippingAddress, setShippingAddress] = useState({
     street: "",
     city: "",
@@ -27,17 +24,15 @@ const PlaceOrder = () => {
     country: "",
     mobile: "",
   });
+  const [showModal, setShowModal] = useState(false);
 
-  const [setError] = useState("");
-
-  // Fetch user’s shipping address
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token =
           sessionStorage.getItem("token") || localStorage.getItem("token");
         if (!token) {
-          setError("Please log in to place an order.");
+          toast.error("Please log in to place an order.");
           return;
         }
         const response = await axiosInstance.get(
@@ -46,20 +41,24 @@ const PlaceOrder = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        const { shippingAddress, mobile } = response.data.userDetail;
-        if (shippingAddress) {
-          setShippingAddress({
-            street: shippingAddress.street || "",
-            city: shippingAddress.city || "",
-            state: shippingAddress.state || "",
-            zip: shippingAddress.zip || "",
-            country: shippingAddress.country || "",
-            mobile: mobile || "",
-          });
+        if (response.data && response.data.user) {
+          const { shippingAddress, mobile } = response.data.user;
+          if (shippingAddress) {
+            setShippingAddress({
+              street: shippingAddress.street || "",
+              city: shippingAddress.city || "",
+              state: shippingAddress.state || "",
+              zip: shippingAddress.zip || "",
+              country: shippingAddress.country || "",
+              mobile: mobile || "",
+            });
+          }
+        } else {
+          toast.error("User data not found in response.");
         }
       } catch (err) {
-        console.log(err)
-        setError("Failed to fetch user data");
+        console.error("Error fetching user data:", err);
+        toast.error("Failed to fetch user data. Please try again.");
       }
     };
     fetchUser();
@@ -67,26 +66,29 @@ const PlaceOrder = () => {
 
   const { getUserProfile } = useAuth();
 
-  // Get user profile data
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const { name, email, mobile, shippingAddress } = await getUserProfile();
         setUserDetails((prev) => ({
           ...prev,
-          name: name,
-          email: email,
-          mobile: mobile,
+          name: name || "",
+          email: email || "",
+          mobile: mobile || "",
         }));
         setShippingAddress((prev) => ({
           ...prev,
-          ...shippingAddress,
+          street: shippingAddress?.street || "",
+          city: shippingAddress?.city || "",
+          state: shippingAddress?.state || "",
+          zip: shippingAddress?.zip || "",
+          country: shippingAddress?.country || "",
+          mobile: shippingAddress?.mobile || "",
         }));
       } catch (err) {
-        console.error("Error fetching profile:", err.message);
+        toast.error("Failed to fetch user profile. Please try again.");
       }
     };
-
     fetchProfile();
   }, [getUserProfile]);
 
@@ -94,13 +96,14 @@ const PlaceOrder = () => {
     const { name, value } = e.target;
     setShippingAddress((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleUserDetailsChange = (e) => {
     const { name, value } = e.target;
     setUserDetails((prev) => ({ ...prev, [name]: value }));
   };
 
   const handlePlaceOrder = async () => {
-    const { city, zip, country,street,state  } = shippingAddress;
+    const { city, zip, country, street, state } = shippingAddress;
     const { name, email, mobile } = userDetails;
 
     const isEmailValid = (email) =>
@@ -109,17 +112,17 @@ const PlaceOrder = () => {
     const isMobileValid = (mobile) => /^[0-9]{7,15}$/.test(mobile.trim());
 
     if (!state || !city || !zip || !country || !mobile || !street) {
-      alert("Please fill in all shipping address fields.");
+      toast.error("Please fill in all shipping address fields.");
       return;
     }
 
-    alert("Please enter a valid email address.");
     if (!isEmailValid(email)) {
+      toast.error("Please enter a valid email address.");
       return;
     }
 
     if (!isMobileValid(mobile)) {
-      alert("Please enter a valid mobile number (7–15 digits).");
+      toast.error("Please enter a valid mobile number (7–15 digits).");
       return;
     }
 
@@ -130,7 +133,7 @@ const PlaceOrder = () => {
           city,
           zip,
           country,
-          state
+          state,
         },
         cartItems,
         resetContextData
@@ -138,7 +141,7 @@ const PlaceOrder = () => {
       setShowModal(true);
     } catch (error) {
       console.error("Error placing order:", error);
-      alert("Failed to place order. Please try again.");
+      toast.error("Failed to place order. Please try again.");
     }
   };
 
@@ -150,7 +153,6 @@ const PlaceOrder = () => {
   return (
     <>
       <div className="flex flex-col justify-evenly gap-4 pt-5 sm:flex-row sm:pt-14 min-h-[80vh] border-t">
-        {/* Left Side Content */}
         <div className="flex flex-col w-full gap-4 sm:max-w-[480px]">
           <div className="my-3 text-xl sm:text-2xl">
             <Title text1={"DELIVERY"} text2={"INFORMATION"} />
@@ -167,10 +169,10 @@ const PlaceOrder = () => {
           <input
             className="w-full px-4 py-2 border border-gray-300 rounded"
             type="text"
-            name="address"
+            name="street"
             placeholder="Street"
-            value={shippingAddress.country}
-            onChange={handleUserDetailsChange}
+            value={shippingAddress.street}
+            onChange={handleInputChange}
           />
           <div className="flex gap-3">
             <input
@@ -194,7 +196,7 @@ const PlaceOrder = () => {
             <input
               className="w-full px-4 py-2 border border-gray-300 rounded"
               type="text"
-              name="postalCode"
+              name="zip"
               placeholder="Zip Code"
               value={shippingAddress.zip}
               onChange={handleInputChange}
@@ -218,74 +220,21 @@ const PlaceOrder = () => {
           />
         </div>
 
-        {/* Right Side Content */}
         <div className="mt-8">
           <div className="mt-8 min-w-80">
             <CartTotal />
           </div>
-
-          {/* Payment Methods Selection */}
-          <div className="mt-12">
-            <Title text1={"PAYMENT"} text2={"METHODS"} />
-            <div className="flex flex-col gap-3 lg:flex-row">
-              <div
-                onClick={() => setMethod("stripe")}
-                className="flex items-center gap-3 p-2 px-3 border cursor-pointer"
-              >
-                <p
-                  className={`min-w-3.5 h-3.5 border rounded-full ${
-                    method === "stripe" ? "bg-green-600" : ""
-                  }`}
-                ></p>
-                <img
-                  className="h-5 mx-4"
-                  src={assets.stripe_logo}
-                  alt="Stripe"
-                />
-              </div>
-              <div
-                onClick={() => setMethod("razorpay")}
-                className="flex items-center gap-3 p-2 px-3 border cursor-pointer"
-              >
-                <p
-                  className={`min-w-3.5 h-3.5 border rounded-full ${
-                    method === "razorpay" ? "bg-green-600" : ""
-                  }`}
-                ></p>
-                <img
-                  className="h-5 mx-4"
-                  src={assets.razorpay_logo}
-                  alt="RazorPay"
-                />
-              </div>
-              <div
-                onClick={() => setMethod("cod")}
-                className="flex items-center gap-3 p-2 px-3 border cursor-pointer"
-              >
-                <p
-                  className={`min-w-3.5 h-3.5 border rounded-full ${
-                    method === "cod" ? "bg-green-600" : ""
-                  }`}
-                ></p>
-                <p className="mx-4 text-sm font-medium text-gray-500">
-                  CASH ON DELIVERY
-                </p>
-              </div>
-            </div>
-
-            <div className="w-full mt-8 text-end">
-              <button
-                onClick={handlePlaceOrder}
-                className="px-16 py-3 text-sm text-white bg-black active:bg-gray-800"
-              >
-                PLACE ORDER
-              </button>
-            </div>
+          <div className="w-full mt-8 text-end">
+            <button
+              onClick={handlePlaceOrder}
+              className="px-16 py-3 text-sm text-white bg-black active:bg-gray-800"
+            >
+              PLACE ORDER
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Success Modal */}
       {showModal && <SuccessModal onClose={handleModalClose} />}
     </>
   );

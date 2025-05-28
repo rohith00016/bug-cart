@@ -2,10 +2,8 @@ import { createContext, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 
-// Create context
 export const AuthContext = createContext();
 
-// Auth Provider
 export const AuthProvider = ({ children }) => {
   const [currentState, setCurrentState] = useState("Login");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -43,31 +41,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Get user profile
   const getUserProfile = async () => {
-  try {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    
-    //validatte token presence
-    if (!token) {
-      throw new Error("User is not authenticated");
-    }
+    try {
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
 
-    const response = await axiosInstance.get("/auth/user", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response.data.user;
-  } catch (err) {
-    const errorMessage =
-      err.response?.data?.message ||
-      err.message ||
-      "Failed to fetch user profile";
-    console.error("User Profile Error:", errorMessage);
-    throw new Error(errorMessage);
-  }
-};
+      if (!token) {
+        throw new Error("User is not authenticated");
+      }
+
+      const response = await axiosInstance.get("/auth/user", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data.user;
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to fetch user profile";
+      console.error("User Profile Error:", errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -78,7 +75,7 @@ export const AuthProvider = ({ children }) => {
         setForm,
         onChange,
         onSubmitHandler,
-        getUserProfile
+        getUserProfile,
       }}
     >
       {children}
@@ -86,5 +83,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use the AuthContext
 export const useAuth = () => useContext(AuthContext);

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { CartContext } from "../context/CartContext";
 import { ProductContext } from "../context/ProductContext";
 import Title from "../components/Title";
@@ -20,14 +20,8 @@ const Cart = () => {
   const { products } = useContext(ProductContext);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Fetch cart on component mount
-  useEffect(() => {
-    getCart();
-  }, []);
-
   const isCartEmpty = cartItems.length === 0;
 
-  // Check login based on token presence
   const isLoggedIn =
     !!sessionStorage.getItem("token") || !!localStorage.getItem("token");
 
@@ -42,15 +36,18 @@ const Cart = () => {
 
       <div>
         {cartItems.map((item) => {
-          console.log("Cart Item:", JSON.stringify(item, null, 2)); // Log item structure
           const productData = products.find(
             (product) => product._id === item.productId._id
           );
           if (!productData) {
-            console.warn(`Product not found for ID: ${item.productId._id}`, item);
+            console.warn(
+              `Product not found for ID: ${item.productId._id}`,
+              item
+            );
             return (
               <div key={item.productId._id} className="py-4 text-gray-500">
-                Product data unavailable (ID: {item.productId._id}) - Quantity: {item.quantity}
+                Product data unavailable (ID: {item.productId._id}) - Quantity:{" "}
+                {item.quantity}
               </div>
             );
           }
@@ -75,7 +72,7 @@ const Cart = () => {
                       {currency} {productData.price.toFixed(2)}
                     </p>
                     <p className="px-2 border sm:px-3 sm:py-1 bg-slate-50">
-                      {item.size || "N/A"} {/* Display item.size */}
+                      {item.size || "N/A"}
                     </p>
                   </div>
                 </div>
@@ -86,7 +83,7 @@ const Cart = () => {
                   onClick={() =>
                     updateQuantity(
                       item.productId._id,
-                      item.size, // Pass item.size
+                      item.size,
                       Math.max(item.quantity - 1, 0)
                     )
                   }
@@ -100,7 +97,7 @@ const Cart = () => {
                     if (e.target.value !== "" && e.target.value !== "0") {
                       updateQuantity(
                         item.productId._id,
-                        item.size, // Pass item.size
+                        item.size,
                         Number(e.target.value)
                       );
                     }
@@ -115,7 +112,7 @@ const Cart = () => {
                   onClick={() =>
                     updateQuantity(
                       item.productId._id,
-                      item.size, // Pass item.size
+                      item.size,
                       item.quantity + 1
                     )
                   }
@@ -127,7 +124,7 @@ const Cart = () => {
               </div>
 
               <img
-                onClick={() => updateQuantity(item.productId._id, item.size, 0)} // Pass item.size
+                onClick={() => updateQuantity(item.productId._id, item.size, 0)}
                 className="w-4 mr-4 cursor-pointer sm:w-5"
                 src={assets.bin_icon}
                 alt="Remove"
