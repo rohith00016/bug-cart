@@ -94,7 +94,6 @@ const Profile = () => {
       toast.error("Failed to update profile. Please try again.");
     }
   };
-  console.log(formData);
   return (
     <div className="flex items-center justify-center min-h-[80vh] border-t pt-[5%] sm:pt-10">
       <div className="flex flex-col gap-4 w-full max-w-[480px]">

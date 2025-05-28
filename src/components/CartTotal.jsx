@@ -33,6 +33,19 @@ const CartTotal = () => {
           </p>
         </div>
         <hr />
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              placeholder="Enter coupon code (e.g., OFF20)"
+              className="w-full sm:w-2/3 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+            />
+            <button className="w-full sm:w-1/3 bg-black text-white p-2 rounded  transition-colors text-base font-medium opacity-50 cursor-not-allowed">
+              Apply Coupon
+            </button>
+          </div>
+        </div>
+        <hr />
         <div className="flex justify-between">
           <p className="text-2xl font-semibold">Total Amount</p>
           <p className="text-2xl font-semibold">

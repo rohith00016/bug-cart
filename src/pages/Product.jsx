@@ -104,20 +104,23 @@ const Product = () => {
         <div className="flex-1">
           <h1 className="mt-2 text-2xl font-medium">{productData.name}</h1>
           <div className="flex items-center gap-1 mt-2">
-            {[...Array(5)].map((_,i)=>{
-              console.log("Product Average Rating",productData.averageRating)
+            {[...Array(5)].map((_, i) => {
               return (
                 <>
-                <img
-                key={i}
-                src={i < productReviews.averageRating ? assets.star_icon : assets.star_dull_icon}
-                alt="Star"
-                className="w-3.5 h-3.5"
-              />
+                  <img
+                    key={i}
+                    src={
+                      i < productReviews.averageRating
+                        ? assets.star_icon
+                        : assets.star_dull_icon
+                    }
+                    alt="Star"
+                    className="w-3.5 h-3.5"
+                  />
                 </>
-              )
+              );
             })}
-            {''}
+            {""}
             {productReviews.averageRating} ({productReviews.count})
           </div>
           <p className="mt-5 text-3xl font-medium">

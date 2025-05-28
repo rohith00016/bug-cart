@@ -1,12 +1,16 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { OrderContext } from "../context/OrderContext";
 import Title from "../components/Title";
 import ReviewModal from "../components/ReviewModal";
 
 const Orders = () => {
-  const { orders } = useContext(OrderContext);
+  const { orders, fetchUserOrders } = useContext(OrderContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  useEffect(() => {
+    fetchUserOrders();
+  }, []);
 
   const openModal = (product) => {
     console.log(product);

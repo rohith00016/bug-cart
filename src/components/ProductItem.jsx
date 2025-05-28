@@ -11,14 +11,7 @@ const ProductItem = ({ id, image, name, price }) => {
 
   const handleWishlistClick = (e) => {
     e.preventDefault();
-    console.log(
-      "Wishlist toggle clicked, productId:",
-      id,
-      "isInWishlist:",
-      isInWishlist,
-      "wishlistItems:",
-      wishlistItems
-    );
+
     if (isInWishlist) {
       removeFromWishlist(id);
     } else {
