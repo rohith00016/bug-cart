@@ -1,17 +1,30 @@
-import { useContext, useEffect, useState } from "react";
-import { ProductContext } from "../context/ProductContext";
+import { useEffect, useState } from "react";
 import Title from "./Title";
 import ProductItem from "./ProductItem";
+import useProduct from "../hooks/useProduct";
+import { toast } from "react-toastify";
 
 const LatestCollection = () => {
-  const { products, isLoading } = useContext(ProductContext);
+  const { fetchLatestProducts } = useProduct();
   const [latestProducts, setLatestProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (products && products.length > 0) {
-      setLatestProducts(products.slice(0, 10));
-    }
-  }, [products]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchLatestProducts({ page: 1 });
+        setLatestProducts(data.products.slice(0, 10)); // Limit to 10 as per original logic
+      } catch (err) {
+        setError(err.message || "Failed to fetch latest products");
+        toast.error(err.message || "Failed to fetch latest products");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [fetchLatestProducts]);
 
   return (
     <div className="my-10">
@@ -24,6 +37,8 @@ const LatestCollection = () => {
       </div>
       {isLoading ? (
         <p>Loading latest collections...</p>
+      ) : error ? (
+        <p>{error}</p>
       ) : latestProducts.length === 0 ? (
         <p>No latest products available.</p>
       ) : (

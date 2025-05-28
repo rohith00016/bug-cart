@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://bug-cart-server.onrender.com/api",
+  baseURL: "http://localhost:8000/api",
   headers: {
     "Content-Type": "application/json",
     // Add Authorization header if needed:

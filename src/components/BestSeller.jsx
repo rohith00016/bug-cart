@@ -1,18 +1,30 @@
-import { useContext, useEffect, useState } from "react";
-import { ProductContext } from "../context/ProductContext";
+import { useEffect, useState } from "react";
 import Title from "./Title";
 import ProductItem from "./ProductItem";
+import useProduct from "../hooks/useProduct";
+import { toast } from "react-toastify";
 
 const BestSeller = () => {
-  const { products, isLoading } = useContext(ProductContext);
-  const [bestSeller, setBestSeller] = useState([]);
+  const { fetchBestSellers } = useProduct();
+  const [bestSellers, setBestSellers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (products && products.length > 0) {
-      const bestProduct = products.filter((item) => item.bestseller);
-      setBestSeller(bestProduct.slice(0, 5));
-    }
-  }, [products]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchBestSellers({ page: 1 });
+        setBestSellers(data.products.slice(0, 5)); // Limit to 5 as per original logic
+      } catch (err) {
+        setError(err.message || "Failed to fetch bestsellers");
+        toast.error(err.message || "Failed to fetch bestsellers");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [fetchBestSellers]);
 
   return (
     <div className="my-10">
@@ -25,11 +37,13 @@ const BestSeller = () => {
       </div>
       {isLoading ? (
         <p>Loading best sellers...</p>
-      ) : bestSeller.length === 0 ? (
+      ) : error ? (
+        <p>{error}</p>
+      ) : bestSellers.length === 0 ? (
         <p>No best sellers available.</p>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-6">
-          {bestSeller.map((item, index) => (
+          {bestSellers.map((item, index) => (
             <ProductItem
               key={index}
               id={item._id}

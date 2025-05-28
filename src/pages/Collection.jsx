@@ -13,7 +13,6 @@ const Collection = () => {
   const [sortType, setSortType] = useState("relevant");
   const [page, setPage] = useState(1);
 
-  // Helper to compute query parameters
   const getQueryParams = () => ({
     page,
     sort:
@@ -26,12 +25,10 @@ const Collection = () => {
     subCategory: subCategory.join(","),
   });
 
-  // Fetch products when filters, sort, or page change
   useEffect(() => {
     fetchProducts(getQueryParams());
   }, [fetchProducts, category, subCategory, sortType, page]);
 
-  // Toggle category filter
   const toggleCategory = (e) => {
     const value = e.target.value;
     setCategory((prev) =>
@@ -39,10 +36,9 @@ const Collection = () => {
         ? prev.filter((item) => item !== value)
         : [...prev, value]
     );
-    setPage(1); // Reset to first page on filter change
+    setPage(1);
   };
 
-  // Toggle subcategory filter
   const toggleSubCategory = (e) => {
     const value = e.target.value;
     setSubCategory((prev) =>
@@ -50,28 +46,24 @@ const Collection = () => {
         ? prev.filter((item) => item !== value)
         : [...prev, value]
     );
-    setPage(1); // Reset to first page on filter change
+    setPage(1);
   };
 
-  // Clear all filters
   const clearFilters = () => {
     setCategory([]);
     setSubCategory([]);
     setSortType("relevant");
-    setPage(1); // Reset to first page
+    setPage(1);
   };
 
-  // Handle pagination
   const handlePrevious = () => setPage((prev) => Math.max(prev - 1, 1));
   const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
 
-  // Render loading or error states
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div className="flex flex-col gap-1 pt-10 border-t sm:flex-row sm:gap-10">
-      {/* Filter Options */}
       <div className="min-w-60">
         <p
           onClick={() => setShowFilter(!showFilter)}
@@ -84,7 +76,6 @@ const Collection = () => {
             alt="Dropdown"
           />
         </p>
-        {/* Category Filters */}
         <div
           className={`border border-gray-300 pl-5 py-3 mt-6 ${
             showFilter ? "" : "hidden"
@@ -106,7 +97,6 @@ const Collection = () => {
             ))}
           </div>
         </div>
-        {/* Sub Category Filters */}
         <div
           className={`border border-gray-300 pl-5 py-3 my-5 ${
             showFilter ? "" : "hidden"
@@ -128,7 +118,6 @@ const Collection = () => {
             ))}
           </div>
         </div>
-        {/* Clear Filters Button */}
         {(category.length > 0 ||
           subCategory.length > 0 ||
           sortType !== "relevant") && (
@@ -143,15 +132,13 @@ const Collection = () => {
         )}
       </div>
 
-      {/* View Product Items */}
       <div className="flex-1">
         <div className="flex justify-between mb-4 text-base sm:text-2xl">
           <Title text1="ALL" text2="COLLECTIONS" />
-          {/* Product Sort */}
           <select
             onChange={(e) => {
               setSortType(e.target.value);
-              setPage(1); // Reset to first page on sort change
+              setPage(1);
             }}
             value={sortType}
             className="px-2 text-sm border-2 border-gray-300"
@@ -161,12 +148,11 @@ const Collection = () => {
             <option value="high-low">Sort by: High to Low</option>
           </select>
         </div>
-        {/* Map Products */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 gap-y-6">
           {Array.isArray(products) && products.length > 0 ? (
             products.map((item) => (
               <ProductItem
-                key={item._id} // Use unique _id instead of index
+                key={item._id}
                 id={item._id}
                 name={item.name}
                 image={item.image}
@@ -185,7 +171,6 @@ const Collection = () => {
             </div>
           )}
         </div>
-        {/* Pagination */}
         <div className="flex justify-center mt-8">
           <button
             disabled={page === 1}
